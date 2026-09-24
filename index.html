@@ -49,7 +49,6 @@ html,body{height:100%;overflow:hidden}body{overscroll-behavior:none}.app{height:
 <div class="card settings-card"><div class="section-title">🔊 आवाज़</div><div class="compact-check"><span>राम आवाज़</span><input id="voice" type="checkbox" checked></div><div class="compact-check"><span>Vibration</span><input id="vibrate" type="checkbox" checked></div><div class="small">आपकी recorded male voice • Offline</div><button class="btn primary fullbtn" id="testVoice">🔊 Test Voice</button></div>
 <div class="card settings-card"><div class="section-title">🔔 स्मरण</div><div class="reminder-grid"><label>हर घंटे<input id="hourly" type="checkbox"></label><label>सुबह<input id="morning" type="checkbox" checked></label><label>शाम<input id="evening" type="checkbox" checked></label><label>रात<input id="night" type="checkbox"></label></div><button class="btn fullbtn" id="notifyBtn">Notifications अनुमति</button></div>
 <div class="card settings-card"><div class="section-title">🪷 आज का स्मरण</div><div class="quote" id="quote">आज कुछ क्षण राम के साथ बैठें।</div><div class="small setting-note">आज के लिए यही संदेश Home के स्मरण बटन पर भी मिलेगा।</div></div>
-<div class="card settings-card wide-v2"><div class="section-title">🏆 पड़ाव <span id="milestoneSummary" class="small" style="float:right"></span></div><div id="milestones" class="milestone-grid"></div></div>
 <div class="card settings-card wide-v2"><div class="section-title">💾 डेटा</div><div class="actions"><button class="btn" id="export">Backup</button><button class="btn" id="restore">Restore</button><button class="btn" id="reset">आज रीसेट</button></div></div>
 </div></section>
 </div><div id="toast" class="toast"></div>
@@ -59,10 +58,51 @@ const AUDIO_B64='SUQzBAAAAAEBflRTU0UAAAAOAAADTGF2ZjYwLjE2LjEwMUdFT0IAAQFcAAADYXB
 const audio=document.getElementById('ramAudio'); audio.src='data:audio/mpeg;base64,'+AUDIO_B64;
 const KEY='ramNaamPWA2';
 function localKey(d=new Date()){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`} const today=()=>localKey();
-let data=JSON.parse(localStorage.getItem(KEY)||'null')||{days:{},total:0,malas:0,goal:108,mantra:'राम',vibrate:true,voice:true,hourly:false,morning:true,evening:true,night:false};
-if(!data.days)data.days={};
-function normalizeData(){if(!data.days||typeof data.days!=='object')data.days={};let total=0,malas=0;for(const k of Object.keys(data.days)){let v=data.days[k];if(typeof v==='number')v={count:v,mala:0};if(!v||typeof v!=='object')v={count:0,mala:0};v.count=Number(v.count||0);v.mala=Number(v.mala||0);data.days[k]=v;total+=v.count;malas+=v.mala}data.total=total;data.malas=malas;data.goal=Number(data.goal||108)}
-normalizeData();
+const DEFAULT_DATA={days:{},total:0,malas:0,goal:108,mantra:'राम',vibrate:true,voice:true,hourly:false,morning:true,evening:true,night:false};
+function readJSON(k){try{const r=localStorage.getItem(k);return r?JSON.parse(r):null}catch(e){return null}}
+let data=readJSON(KEY)||structuredClone(DEFAULT_DATA);
+if(!data.days||typeof data.days!=='object')data.days={};
+function dayCount(v){
+  if(typeof v==='number')return Math.max(0,Number(v)||0);
+  if(typeof v==='string')return Math.max(0,Number(v)||0);
+  if(v&&typeof v==='object')return Math.max(0,Number(v.count??v.jaap??v.total??v.value??0)||0);
+  return 0;
+}
+function dayMala(v){return v&&typeof v==='object'?Math.max(0,Number(v.mala??v.malas??0)||0):0}
+function normalizeData(){
+  let totalFromDays=0,malasFromDays=0,changed=false;
+  const clean={};
+  for(const [key,v] of Object.entries(data.days||{})){
+    const count=dayCount(v), mala=dayMala(v);
+    if(count||mala){clean[key]={count,mala}; totalFromDays+=count; malasFromDays+=mala;}
+    if(typeof v!=='object'||v===null||dayCount(v)!==count||Number(v.mala||0)!==mala)changed=true;
+  }
+  data.days=clean;
+  // Never erase an existing lifetime total merely because daily history is temporarily unavailable.
+  data.total=Math.max(totalFromDays,Number(data.total)||0);
+  data.malas=Math.max(malasFromDays,Number(data.malas)||0);
+  data.goal=Number(data.goal)||108;
+  return changed;
+}
+function recoverLegacyData(){
+  // Earlier builds may have used a different localStorage key. Recover the richest history automatically.
+  let best=data, bestDays=Object.keys(data.days||{}).length;
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i); if(!k||k===KEY)continue;
+      const candidate=readJSON(k);
+      if(!candidate||typeof candidate!=='object'||!candidate.days||typeof candidate.days!=='object')continue;
+      const n=Object.keys(candidate.days).length;
+      if(n>bestDays){best=candidate;bestDays=n;}
+    }
+  }catch(e){}
+  if(best!==data){
+    data={...best,...data,days:best.days};
+    if(!(Number(data.total)>0))data.total=Number(best.total)||0;
+  }
+  normalizeData();
+}
+recoverLegacyData();
 const state={malaSize:108,mala:0,focus:0,focusSec:300,timer:null,dharaTimer:null,dharaRunning:false,installEvent:null};
 const $=id=>document.getElementById(id);
 function syncData(){
@@ -81,7 +121,7 @@ function vibrate(){if(data.vibrate&&navigator.vibrate)navigator.vibrate(18)}
 function add(n=1, announce=true){const r=dayRec();r.count+=n;data.total+=n;if(announce){speak();vibrate()};save()}
 function setPanel(p){syncData();document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===p));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.p===p));if(p==='history')renderHistory();else if(p==='home')renderHome();else if(p==='mala')renderMala();else if(p==='more')renderSettings();}
 function renderHome(){const r=dayRec();const c=r.count,g=Number(data.goal);$('count').textContent=fmt(c);$('word').textContent=data.mantra.split(' ')[0]||'राम';$('goalText').textContent='लक्ष्य: '+fmt(g)+' • '+Math.min(100,Math.round(c/g*100))+'%';$('fill').style.width=Math.min(100,c/g*100)+'%';$('total').textContent=fmt(data.total);$('todayMala').textContent=fmt(r.mala);$('streak').textContent=calcStreak();$('sankalpText').textContent=fmt(g)+' नाम पूरे करने हैं।';renderThought();let next=[108,216,1008,5004,10008,11000,21000,51000,108000].find(x=>x>c)||c; $('nextMilestone').innerHTML='<span>अगला पड़ाव</span><b>'+fmt(next)+'</b>';}
-function calcStreak(){let n=0,d=new Date();while(true){const k=localKey(d);if((data.days[k]?.count||0)>0){n++;d.setDate(d.getDate()-1)}else break}return n}
+function calcStreak(){let n=0,d=new Date();while(true){const k=localKey(d);if(dayCount(data.days[k])>0){n++;d.setDate(d.getDate()-1)}else break}return n}
 const quotes=['मन जहाँ भी जाए, उसे धीरे से राम नाम में लौटा लाएँ।','नाम छोटा हो सकता है, स्मरण गहरा हो सकता है।','आज कुछ क्षण राम के साथ बैठें।','जाप में जल्दी नहीं — बस प्रेम और ध्यान।','एक शांत श्वास, एक राम नाम।'];
 function dailyThought(){return quotes[new Date().getDate()%quotes.length]}
 function renderThought(){const q=dailyThought();const e=$('quote');if(e)e.textContent=q;const h=$('homeThought');if(h)h.textContent=q}
@@ -92,7 +132,7 @@ function renderHistory(){
  let week=0,month=0,best=0,days=0;
  for(const [d,v] of Object.entries(data.days)){
    const dt=new Date(d+'T00:00:00');
-   const count=Number(typeof v==='number'?v:(v?.count||0));
+   const count=dayCount(v);
    if(count>0)days++;
    if(dt.getFullYear()===now.getFullYear()&&dt.getMonth()===now.getMonth())month+=count;
    const diff=(now-dt)/86400000;
@@ -103,10 +143,9 @@ function renderHistory(){
  $('htotal').textContent=fmt(data.total);$('hmalas').textContent=fmt(data.malas);
  $('best').textContent=fmt(best);$('practiceDays').textContent=fmt(days);
  renderWeekChart(now);renderLast30(now);renderMilestones();renderThought();
-}function renderCalendar(now){const c=$('calendar');c.innerHTML='';['रवि','सोम','मंगल','बुध','गुरु','शुक्र','शनि'].forEach(x=>{const e=document.createElement('div');e.className='dayhead';e.textContent=x;c.appendChild(e)});const first=new Date(now.getFullYear(),now.getMonth(),1).getDay(),last=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();for(let i=0;i<first;i++)c.appendChild(document.createElement('div'));for(let d=1;d<=last;d++){const key=localKey(new Date(now.getFullYear(),now.getMonth(),d)),e=document.createElement('div');e.className='day'+((data.days[key]?.count||0)>0?' active ':'')+(key===today()?' today':'');e.innerHTML='<b>'+d+'</b><br><span>'+fmt(data.days[key]?.count||0)+'</span>';c.appendChild(e)}$('monthTitle').textContent=now.toLocaleDateString('hi-IN',{month:'long',year:'numeric'})}
+}function renderCalendar(now){const c=$('calendar');c.innerHTML='';['रवि','सोम','मंगल','बुध','गुरु','शुक्र','शनि'].forEach(x=>{const e=document.createElement('div');e.className='dayhead';e.textContent=x;c.appendChild(e)});const first=new Date(now.getFullYear(),now.getMonth(),1).getDay(),last=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();for(let i=0;i<first;i++)c.appendChild(document.createElement('div'));for(let d=1;d<=last;d++){const key=localKey(new Date(now.getFullYear(),now.getMonth(),d)),e=document.createElement('div');e.className='day'+(dayCount(data.days[key])>0?' active ':'')+(key===today()?' today':'');e.innerHTML='<b>'+d+'</b><br><span>'+fmtdayCount(data.days[key])+'</span>';c.appendChild(e)}$('monthTitle').textContent=now.toLocaleDateString('hi-IN',{month:'long',year:'numeric'})}
 function renderLast30(now){
- const c=$('last30'); if(!c)return;
- c.innerHTML='';
+ const c=$('last30'); if(!c)return; c.innerHTML='';
  const names=['रवि','सोम','मंगल','बुध','गुरु','शुक्र','शनि'];
  names.forEach(n=>{const e=document.createElement('div');e.className='cal-head';e.textContent=n;c.appendChild(e)});
  const dates=[];
@@ -114,20 +153,19 @@ function renderLast30(now){
  const first=dates[0].getDay();
  for(let i=0;i<first;i++)c.appendChild(document.createElement('div'));
  dates.forEach(d=>{
-   const key=localKey(d), raw=data.days[key], count=Number(typeof raw==='number'?raw:(raw?.count||0));
-   const e=document.createElement('div');
-   e.className='cal-day'+(count>0?' has-jaap':'')+(key===today()?' today':'');
+   const key=localKey(d), count=dayCount(data.days[key]), e=document.createElement('div');
+   e.className='cal-day'+(count>0?' has-jaap ':' ')+(key===today()?' today':'');
    e.title=key+' • '+fmt(count)+' नाम';
    e.innerHTML='<b class="cal-date">'+d.getDate()+'</b><span class="cal-count">'+(count?fmt(count):'—')+'</span>';
    c.appendChild(e);
  });
 }
+
 function renderMilestones(){
- const ms=[108,216,1008,5004,10008,11000,21000,51000,108000];
- const c=$('milestones'); if(!c)return;
- c.innerHTML='';
- const total=Number(data.total||0);
- const next=ms.find(x=>total<x);
+ const ms=[108,216,1008,5004,10008,11000,21000,51000,108000],c=$('milestones');
+ if(!c)return;c.innerHTML='';
+ const total=Math.max(0,Number(data.total)||0);
+ let next=ms.find(x=>total<x);
  const summary=$('milestoneSummary');
  if(summary)summary.textContent=next?'अगला '+fmt(next):'सभी पूरे';
  ms.forEach((x,i)=>{
@@ -141,6 +179,7 @@ function renderMilestones(){
    c.appendChild(e);
  });
 }
+
 function renderSettings(){for(const id of ['goal','mantra','vibrate','voice','hourly','morning','evening','night']){const e=$(id);if(id==='goal')e.value=data.goal;else if(id==='mantra')e.value=data.mantra;else e.checked=!!data[id]}}
 function renderAll(){renderHome();renderMala();renderHistory();renderSettings();renderThought()}
 
