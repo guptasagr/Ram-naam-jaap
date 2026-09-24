@@ -1,24 +1,15 @@
 {
-  "name": "राम जाप",
+  "name": "राम नाम जाप",
   "short_name": "राम जाप",
+  "description": "सरल, शांत और निजी राम नाम जाप app",
   "start_url": "./",
   "display": "standalone",
-  "theme_color": "#b45309",
   "background_color": "#fffbeb",
+  "theme_color": "#b45309",
   "lang": "hi",
-  "description": "सरल, शांत और निजी राम नाम जाप companion",
+  "dir": "ltr",
   "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    {"src":"icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
   ]
 }
