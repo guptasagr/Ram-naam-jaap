@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#b45309">
+<meta name="description" content="राम नाम जाप — सरल, शांत और निजी Naam Jaap companion">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>राम नाम जाप</title>
+<style>
+:root{--a:#b45309;--ink:#292524;--muted:#78716c;--line:#e7e5e4;--bg:#fffbeb}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans Devanagari",sans-serif}.app{max-width:620px;margin:auto;padding:12px 12px 28px}.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:#f5f5f4;padding:4px;border-radius:14px;margin-bottom:10px}.tab{border:0;background:transparent;border-radius:10px;padding:10px 3px;font-weight:700;color:var(--muted)}.tab.active{background:#fff;color:var(--a);box-shadow:0 1px 5px #0001}.panel{display:none}.panel.active{display:block}.hero{background:linear-gradient(145deg,#fff7ed,#fffbeb);border:1px solid #fed7aa;border-radius:26px;padding:24px 16px;text-align:center}.word{font-size:52px;font-weight:850;color:var(--a)}.count{font-size:46px;font-weight:850;margin:7px}.muted{font-size:13px;color:var(--muted)}.bar{height:8px;background:#f1f1ef;border-radius:99px;overflow:hidden;max-width:390px;margin:12px auto}.fill{height:100%;background:var(--a);width:0;transition:.2s}.tap{width:min(215px,65vw);aspect-ratio:1;border:0;border-radius:50%;background:var(--a);color:#fff;font-size:27px;font-weight:800;box-shadow:0 14px 30px #92400e30}.tap:active{transform:scale(.97)}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:9px}.card{background:#fff;border:1px solid var(--line);border-radius:17px;padding:14px}.stat{text-align:center}.stat b{font-size:21px}.stat span{display:block;font-size:11px;color:var(--muted);margin-top:3px}.actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:9px}.btn{min-height:44px;border:1px solid #d6d3d1;background:#fff;border-radius:12px;padding:9px 14px;font-weight:700;color:#44403c}.primary{background:var(--a);border-color:var(--a);color:#fff}.quote{background:#fafaf9;border-left:3px solid #d97706;border-radius:9px;padding:13px;color:#57534e;font-size:14px}.beads{display:grid;grid-template-columns:repeat(9,1fr);gap:5px;max-width:320px;margin:15px auto}.bead{aspect-ratio:1;border-radius:50%;background:#eee;border:1px solid #ddd}.bead.done{background:var(--a);border-color:var(--a)}.focus{background:#18181b;color:#fff;border-radius:24px;padding:34px 15px;text-align:center}.fword{font-size:60px;font-weight:850;color:#fbbf24}.fcount{font-size:48px}.timer{font-size:34px;font-weight:800}.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #f0efed}.row:last-child{border:0}.input{min-height:42px;border:1px solid #d6d3d1;border-radius:10px;padding:7px 9px;font-size:16px;background:#fff}.notice{text-align:center;min-height:20px;color:var(--a);font-weight:700;font-size:13px;margin-top:8px}.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.day{text-align:center;padding:8px 2px;border-radius:8px;font-size:11px;background:#fafaf9}.day.active{background:#fff7ed;border:1px solid #fed7aa;color:var(--a);font-weight:800}.install{display:none;background:#fff7ed;border:1px solid #fed7aa;border-radius:14px;padding:12px;margin-bottom:9px;text-align:center}.install button{margin-top:8px}.small{font-size:12px;color:var(--muted)}@media(max-width:380px){.tab{font-size:10px}.grid{gap:5px}.card{padding:11px 6px}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+<div id="installBox" class="install"><b>राम नाम जाप को फोन में install करें</b><div class="small">फिर यह app की तरह Home Screen से खुलेगा।</div><br><button class="btn primary" id="installBtn">Install App</button></div>
+<div class="tabs"><button class="tab active" data-p="home">राम</button><button class="tab" data-p="mala">माला</button><button class="tab" data-p="focus">Focus</button><button class="tab" data-p="history">इतिहास</button><button class="tab" data-p="settings">स्मरण</button></div>
+
+<section id="home" class="panel active">
+<div class="hero"><div class="muted">आज का नाम स्मरण</div><div class="word" id="word">राम</div><div class="count" id="count">0</div><div class="muted">नाम जाप</div><div class="bar"><div id="fill" class="fill"></div></div><div class="muted" id="goalText">लक्ष्य: 108 • 0%</div><div style="margin:17px 0"><button class="tap" id="tap">राम<div style="font-size:12px;font-weight:500">जाप करें</div></button></div><div class="notice" id="notice">एक बार राम कहें। फिर एक बार और।</div></div>
+<div class="grid"><div class="card stat"><b id="todayMala">0</b><span>आज की माला</span></div><div class="card stat"><b id="streak">1</b><span>दिन</span></div><div class="card stat"><b id="total">0</b><span>कुल नाम</span></div></div>
+<div class="actions"><button class="btn primary" id="plus108">+108</button><button class="btn" id="oneMala">एक माला</button><button class="btn" id="smaran">🪷 राम स्मरण</button></div>
+<div class="card" style="margin-top:9px"><b>आज का विचार</b><div class="quote" id="quote" style="margin-top:8px">मन जहाँ भी जाए, उसे धीरे से राम नाम में लौटा लाएँ।</div></div>
+<div class="card" style="margin-top:9px;text-align:center"><div class="muted">अगला व्यक्तिगत पड़ाव</div><b id="next" style="font-size:20px;color:var(--a)">108 नाम</b><div class="small">प्रतिस्पर्धा नहीं — केवल अपना अभ्यास।</div></div>
+</section>
+
+<section id="mala" class="panel"><div class="card" style="text-align:center"><b>🪷 माला जाप</b><div class="muted">माला आकार</div><div class="actions"><button class="btn" data-size="27">27</button><button class="btn" data-size="54">54</button><button class="btn primary" data-size="108">108</button></div><div class="count" id="malaCount">0 / 108</div><div class="beads" id="beads"></div><div class="actions"><button class="btn primary" id="malaTap">राम — 1</button><button class="btn" id="complete">पूरी करें</button><button class="btn" id="malaReset">फिर से</button></div><div class="notice" id="malaNotice">हर स्पर्श एक नाम</div></div></section>
+
+<section id="focus" class="panel"><div class="focus"><div class="muted" style="color:#a1a1aa">शांत रहें • नाम में मन लगाएँ</div><div class="fword" id="fword">राम</div><div class="fcount" id="fcount">0</div><div class="timer" id="timer">5:00</div><div class="actions"><button class="btn primary" id="focusTap">राम</button><button class="btn" data-min="5">5 min</button><button class="btn" data-min="10">10 min</button><button class="btn" data-min="15">15 min</button><button class="btn" data-min="30">30 min</button><button class="btn" id="start">शुरू</button><button class="btn" id="stop">रोकें</button></div></div></section>
+
+<section id="history" class="panel"><div class="grid"><div class="card stat"><b id="hToday">0</b><span>आज</span></div><div class="card stat"><b id="hWeek">0</b><span>सप्ताह</span></div><div class="card stat"><b id="hMonth">0</b><span>महीना</span></div></div><div class="card" style="margin-top:9px"><b>सितम्बर 2026</b><div class="calendar" id="calendar" style="margin-top:10px"></div></div><div class="card" style="margin-top:9px"><div class="row"><b>कुल नाम</b><span id="htotal">0</span></div><div class="row"><b>कुल माला</b><span id="hmalas">0</span></div><div class="row"><b>सबसे अधिक एक दिन</b><span id="best">0</span></div></div></section>
+
+<section id="settings" class="panel"><div class="card"><b>संकल्प</b><div class="row"><label>दैनिक लक्ष्य</label><select class="input" id="goal"><option value="108">108</option><option value="1008">1,008</option><option value="5004">5,004</option><option value="10008">10,008</option></select></div><div class="row"><label>नाम / मंत्र</label><select class="input" id="mantra"><option>राम</option><option>श्री राम</option><option>जय श्री राम</option><option>श्री राम जय राम जय जय राम</option></select></div><div class="row"><label>जाप पर vibration</label><input id="vibrate" type="checkbox" checked></div>
+<div class="row"><label>हर जाप पर आवाज़</label><input id="voice" type="checkbox" checked></div>
+<div class="row"><label>आवाज़ की गति</label><input id="voiceRate" type="range" min="0.65" max="1" step="0.05" value="0.78" style="width:130px"></div></div>
+<div class="card" style="margin-top:9px"><b>🔔 राम स्मरण</b><div class="row"><label>हर घंटे</label><input id="hourly" type="checkbox"></div><div class="row"><label>सुबह</label><input id="morning" type="checkbox" checked></div><div class="row"><label>शाम</label><input id="evening" type="checkbox" checked></div><div class="row"><label>रात</label><input id="night" type="checkbox"></div><div class="small">PWA install होने के बाद browser notification permission दी जा सकती है। Background scheduling की reliability browser/OS पर निर्भर रहती है।</div><div class="small" style="margin-top:7px">🔊 हर जाप पर उपलब्ध Hindi browser voice “राम” बोलेगा। Deep male voice की उपलब्धता Android/browser में installed voices पर निर्भर है।</div><div class="actions"><button class="btn" id="notifyBtn">Notifications अनुमति दें</button></div></div>
+<div class="card" style="margin-top:9px"><b>डेटा</b><div class="actions"><button class="btn" id="export">Backup</button><button class="btn" id="restore">Restore</button><button class="btn" id="reset">आज रीसेट</button></div></div></section>
+</div>
+<script>
+(function(){
+const S='ramNaamPWA1';let state=JSON.parse(localStorage.getItem(S)||'null')||{count:0,total:0,goal:108,mantra:'राम',streak:1,malaSize:108,malaCount:0,days:{}},timer=300,timerId=null,deferredPrompt=null;
+const $=id=>document.getElementById(id),fmt=n=>Number(n||0).toLocaleString('en-IN'),key=()=>new Date().toISOString().slice(0,10),save=()=>localStorage.setItem(S,JSON.stringify(state));
+function vib(){if($('vibrate').checked&&navigator.vibrate)navigator.vibrate(16)}
+function speakRam(){
+  if(!$('voice').checked || !('speechSynthesis' in window)) return;
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(state.mantra||'राम');
+    u.lang='hi-IN';
+    u.rate=Number($('voiceRate').value)||0.78;
+    u.pitch=0.72;
+    u.volume=1;
+    const voices=speechSynthesis.getVoices();
+    const hindi=voices.filter(v=>(v.lang||'').toLowerCase().startsWith('hi'));
+    const hints=['male','hemant','ravi','amit','rahul','aditya','madhur','google hindi'];
+    const preferred=hindi.find(v=>hints.some(h=>(v.name||'').toLowerCase().includes(h))) ||
+                    hindi[0] ||
+                    voices.find(v=>(v.lang||'').toLowerCase().startsWith('en-in')) ||
+                    voices[0];
+    if(preferred) u.voice=preferred;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function add(n){n=Math.max(0,Number(n)||0);state.count+=n;state.total+=n;if(n){state.days[key()]=state.count;vib();speakRam();$('notice').textContent=state.count>=state.goal?'🙏 आज का संकल्प पूरा हुआ। राम नाम चलता रहे।':'राम। 🙏'}save();render()}
+function render(){let p=Math.min(100,state.count/state.goal*100);$('count').textContent=fmt(state.count);$('total').textContent=fmt(state.total);$('todayMala').textContent=Math.floor(state.count/108);$('streak').textContent=state.streak;$('fill').style.width=p+'%';$('goalText').textContent='लक्ष्य: '+fmt(state.goal)+' • '+Math.round(p)+'%';$('word').textContent=state.mantra;$('fword').textContent=state.mantra;$('fcount').textContent=fmt(state.count);$('malaCount').textContent=state.malaCount+' / '+state.malaSize;$('hToday').textContent=fmt(state.count);$('hWeek').textContent=fmt(state.count);$('hMonth').textContent=fmt(state.count);$('htotal').textContent=fmt(state.total);$('hmalas').textContent=fmt(Math.floor(state.total/108));$('best').textContent=fmt(Math.max(...Object.values(state.days).map(Number),state.count,0));let ms=[108,1008,5004,10008,50040,100000,1000000];$('next').textContent=fmt(ms.find(x=>x>state.total)||1000000)+' नाम';beads();calendar()}
+function beads(){let b=$('beads');b.innerHTML='';for(let i=1;i<=state.malaSize;i++){let x=document.createElement('span');x.className='bead'+(i<=state.malaCount?' done':'');b.appendChild(x)}}
+function calendar(){let c=$('calendar');c.innerHTML='';['सो','मं','बु','गु','शु','श','र'].forEach(x=>{let d=document.createElement('div');d.className='day';d.textContent=x;c.appendChild(d)});let first=new Date(2026,8,1).getDay(),shift=first===0?6:first-1;for(let i=0;i<shift;i++){let d=document.createElement('div');d.className='day';c.appendChild(d)}for(let i=1;i<=30;i++){let d=document.createElement('div');d.className='day'+(i===23?' active':'');d.textContent=i;let k='2026-09-'+String(i).padStart(2,'0');if(state.days[k])d.title=fmt(state.days[k])+' नाम';c.appendChild(d)}}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));t.classList.add('active');$(t.dataset.p).classList.add('active')});
+$('tap').onclick=()=>add(1);$('plus108').onclick=()=>add(108);$('oneMala').onclick=()=>add(108);$('smaran').onclick=()=>{document.querySelector('[data-p="focus"]').click();$('notice').textContent='🪷 राम स्मरण — बस एक क्षण रुकें और नाम लें.'};
+document.querySelectorAll('[data-size]').forEach(b=>b.onclick=()=>{state.malaSize=Number(b.dataset.size);state.malaCount=0;save();render()});
+$('malaTap').onclick=()=>{state.malaCount++;add(1);if(state.malaCount>=state.malaSize){state.malaCount=0;$('malaNotice').textContent='🪷 माला पूर्ण। अगली माला के लिए तैयार।'}else $('malaNotice').textContent='नाम '+state.malaCount+' / '+state.malaSize;save();render()};
+$('complete').onclick=()=>{add(state.malaSize-state.malaCount);state.malaCount=0;$('malaNotice').textContent='🪷 माला पूर्ण।';save();render()};$('malaReset').onclick=()=>{state.malaCount=0;save();render()};
+$('focusTap').onclick=()=>add(1);document.querySelectorAll('[data-min]').forEach(b=>b.onclick=()=>{timer=Number(b.dataset.min)*60;$('timer').textContent=b.dataset.min+':00'});
+$('start').onclick=()=>{clearInterval(timerId);timerId=setInterval(()=>{if(timer>0){timer--;let m=Math.floor(timer/60),s=timer%60;$('timer').textContent=m+':'+String(s).padStart(2,'0')}else{clearInterval(timerId);$('notice').textContent='🪷 Focus session पूर्ण।'}},1000)};$('stop').onclick=()=>clearInterval(timerId);
+$('goal').onchange=e=>{state.goal=Math.max(1,Number(e.target.value)||108);save();render()};$('mantra').onchange=e=>{state.mantra=e.target.value;save();render()};
+$('reset').onclick=()=>{state.count=0;state.days[key()]=0;save();render();$('notice').textContent='आज का जाप रीसेट किया गया।'};
+$('export').onclick=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}));a.download='ram-naam-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+$('restore').onclick=()=>{let i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=()=>{let f=i.files[0];if(!f)return;let rd=new FileReader();rd.onload=()=>{try{state=JSON.parse(rd.result);save();render();$('notice').textContent='Backup restore हो गया।'}catch(e){$('notice').textContent='Backup file सही नहीं है।'}};rd.readAsText(f)};i.click()};
+$('notifyBtn').onclick=async()=>{if(!('Notification'in window)){$('notice').textContent='इस browser में notifications उपलब्ध नहीं हैं।';return}let p=await Notification.requestPermission();$('notice').textContent=p==='granted'?'🔔 Notifications अनुमति मिल गई।':'Notifications अनुमति नहीं मिली।'};
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('installBox').style.display='block'});
+$('installBtn').onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('installBox').style.display='none'};
+window.addEventListener('appinstalled',()=>{$('installBox').style.display='none'});
+$('goal').value=state.goal;$('mantra').value=state.mantra;render();
+})();
+</script>
+</body>
+</html>
