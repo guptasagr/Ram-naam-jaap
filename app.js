@@ -5,7 +5,37 @@ const KEY='ramNaamPWA2';
 function localKey(d=new Date()){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`} const today=()=>localKey();
 let data=JSON.parse(localStorage.getItem(KEY)||'null')||{days:{},total:0,malas:0,goal:108,mantra:'राम',vibrate:true,voice:true,hourly:false,morning:true,evening:true,night:false};
 if(!data.days)data.days={};
-function normalizeData(){let total=0,malas=0;for(const v of Object.values(data.days)){v.count=Number(v.count||0);v.mala=Number(v.mala||0);total+=v.count;malas+=v.mala}data.total=total;data.malas=malas;data.goal=Number(data.goal||108)}
+function dayCount(v){
+  if(typeof v==='number') return Math.max(0,Number(v)||0);
+  if(!v||typeof v!=='object') return 0;
+  return Math.max(0,Number(v.count ?? v.jaap ?? v.jap ?? v.total ?? v.n ?? 0)||0);
+}
+function dayMala(v){
+  if(!v||typeof v!=='object') return 0;
+  return Math.max(0,Number(v.mala ?? v.malas ?? 0)||0);
+}
+function normalizeData(){
+  if(!data||typeof data!=='object') data={};
+  if(!data.days||typeof data.days!=='object'||Array.isArray(data.days)) data.days={};
+  const clean={}; let total=0,malas=0;
+  for(const [key,v] of Object.entries(data.days)){
+    const count=dayCount(v), mala=dayMala(v);
+    if(/^\d{4}-\d{2}-\d{2}$/.test(key)) {
+      clean[key]={count,mala};
+      total+=count; malas+=mala;
+    }
+  }
+  data.days=clean;
+  // The mathematically authoritative totals are the sums of the daily records.
+  // If no daily records exist at all, retain the saved lifetime total as a legacy fallback.
+  if(Object.keys(clean).length===0){
+    data.total=Math.max(0,Number(data.total)||0);
+    data.malas=Math.max(0,Number(data.malas)||0);
+  }else{
+    data.total=total; data.malas=malas;
+  }
+  data.goal=Number(data.goal||108);
+}
 normalizeData();
 const state={malaSize:108,mala:0,focus:0,focusSec:300,timer:null,dharaTimer:null,dharaRunning:false,installEvent:null};
 const $=id=>document.getElementById(id);
@@ -36,7 +66,7 @@ function renderHistory(){
  let week=0,month=0,best=0,days=0;
  for(const [d,v] of Object.entries(data.days)){
    const dt=new Date(d+'T00:00:00');
-   const count=Number(v.count||0);
+   const count=dayCount(v);
    if(count>0)days++;
    if(dt.getFullYear()===now.getFullYear()&&dt.getMonth()===now.getMonth())month+=count;
    const diff=(now-dt)/86400000;
@@ -47,7 +77,7 @@ function renderHistory(){
  $('htotal').textContent=fmt(data.total);$('hmalas').textContent=fmt(data.malas);
  $('best').textContent=fmt(best);$('practiceDays').textContent=fmt(days);
  renderWeekChart(now);renderLast30(now);renderMilestones();renderThought();
-}function renderCalendar(now){const c=$('calendar');c.innerHTML='';['रवि','सोम','मंगल','बुध','गुरु','शुक्र','शनि'].forEach(x=>{const e=document.createElement('div');e.className='dayhead';e.textContent=x;c.appendChild(e)});const first=new Date(now.getFullYear(),now.getMonth(),1).getDay(),last=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();for(let i=0;i<first;i++)c.appendChild(document.createElement('div'));for(let d=1;d<=last;d++){const key=localKey(new Date(now.getFullYear(),now.getMonth(),d)),e=document.createElement('div');e.className='day'+((data.days[key]?.count||0)>0?' active ':'')+(key===today()?' today':'');e.innerHTML='<b>'+d+'</b><br><span>'+fmt(data.days[key]?.count||0)+'</span>';c.appendChild(e)}$('monthTitle').textContent=now.toLocaleDateString('hi-IN',{month:'long',year:'numeric'})}
+}function renderCalendar(now){const c=$('calendar');c.innerHTML='';['रवि','सोम','मंगल','बुध','गुरु','शुक्र','शनि'].forEach(x=>{const e=document.createElement('div');e.className='dayhead';e.textContent=x;c.appendChild(e)});const first=new Date(now.getFullYear(),now.getMonth(),1).getDay(),last=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();for(let i=0;i<first;i++)c.appendChild(document.createElement('div'));for(let d=1;d<=last;d++){const key=localKey(new Date(now.getFullYear(),now.getMonth(),d)),e=document.createElement('div');e.className='day'+(dayCount(data.days[key])>0?' active ':'')+(key===today()?' today':'');e.innerHTML='<b>'+d+'</b><br><span>'+fmtdayCount(data.days[key])+'</span>';c.appendChild(e)}$('monthTitle').textContent=now.toLocaleDateString('hi-IN',{month:'long',year:'numeric'})}
 function renderLast30(now){
  const c=$('last30'); if(!c)return; c.innerHTML='';
  const names=['रवि','सोम','मंगल','बुध','गुरु','शुक्र','शनि'];
@@ -57,10 +87,10 @@ function renderLast30(now){
  const first=dates[0].getDay();
  for(let i=0;i<first;i++)c.appendChild(document.createElement('div'));
  dates.forEach(d=>{
-   const key=localKey(d), count=Number(data.days[key]?.count||0), e=document.createElement('div');
+   const key=localKey(d), count=NumberdayCount(data.days[key]), e=document.createElement('div');
    e.className='cal-day'+(count?' has-jaap ':' ')+(key===today()?' today':'');
    e.title=key+' • '+fmt(count)+' नाम';
-   e.innerHTML='<b class="cal-date">'+d.getDate()+'</b><span class="cal-count">'+(count?fmt(count):'—')+'</span>';
+   e.innerHTML='<b class="cal-date">'+d.getDate()+'</b><span class="cal-count">'+fmt(count)+'</span>';
    c.appendChild(e);
  });
 }
