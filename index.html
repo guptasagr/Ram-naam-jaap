@@ -22,14 +22,26 @@
 .data-check button{margin-top:8px}
 .data-check-result{margin-top:8px}
 </style>
+
 <style>
-.padaav-card{margin-top:18px}.padaav-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-.padaav-item{padding:11px 12px;border:1px solid rgba(128,90,40,.18);border-radius:12px}
-.padaav-title{font-weight:700;font-size:14px}.padaav-sub{font-size:11px;opacity:.72;margin-top:4px}
-.padaav-bar{height:6px;border-radius:99px;background:rgba(128,90,40,.12);margin-top:8px;overflow:hidden}
+.padaav-page{padding-bottom:24px}
+.padaav-hero{text-align:center;margin-bottom:14px}
+.padaav-total{font-size:32px;font-weight:800;margin:6px 0}
+.padaav-message{font-size:14px}
+.padaav-next{margin-top:10px;font-size:13px;font-weight:700}
+.padaav-list{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.padaav-item{padding:13px;border:1px solid rgba(128,90,40,.18);border-radius:14px;background:rgba(255,255,255,.35)}
+.padaav-item.current{border-width:2px}
+.padaav-item.done{opacity:.9}
+.padaav-mark{font-size:15px;font-weight:800}
+.padaav-status{font-size:11px;opacity:.75;margin-top:4px}
+.padaav-reward{font-size:12px;margin-top:7px;line-height:1.35}
+.padaav-bar{height:7px;border-radius:99px;background:rgba(128,90,40,.12);margin-top:9px;overflow:hidden}
 .padaav-fill{height:100%;border-radius:99px;background:currentColor;opacity:.65}
-@media(max-width:420px){.padaav-grid{grid-template-columns:1fr}}
-</style></head>
+.padaav-blessing{margin-top:14px;text-align:center;line-height:1.5}
+@media(max-width:420px){.padaav-list{grid-template-columns:1fr}}
+</style>
+</head>
 <body>
 <div class="app" id="app">
 <div id="installBox" class="install"><b>राम नाम जाप को फोन में install करें</b><div class="small">फिर यह app की तरह Home Screen से खुलेगा।</div><br><button class="btn primary" id="installBtn">Install App</button></div>
@@ -42,9 +54,28 @@
 <div class="card" style="margin-top:9px"><b>आज का विचार</b><div class="quote" id="quote" style="margin-top:8px">मन जहाँ भी जाए, उसे धीरे से राम नाम में लौटा लाएँ।</div></div>
 <div class="card" style="margin-top:9px;text-align:center"><div class="muted">अगला व्यक्तिगत पड़ाव</div><b id="next" style="font-size:20px;color:var(--a)">108 नाम</b><div class="small">प्रतिस्पर्धा नहीं — केवल अपना अभ्यास।</div></div>
 
-<div class="card padaav-card" id="padaavCard">
-<h3>पड़ाव</h3><p class="small">कुल राम नाम जाप के आधार पर साधना के पड़ाव।</p>
-<div id="padaavList"></div></div><div class="card safe-data-panel" id="safeDataPanel">
+
+<section id="pagePadaav" class="page padaav-page">
+  <div class="page-head">
+    <h2>📿 पड़ाव</h2>
+    <p class="small">हर पड़ाव — राम नाम में एक नया ठहराव।</p>
+  </div>
+
+  <div class="padaav-hero card">
+    <div class="small">आपका कुल जाप</div>
+    <div id="padaavTotal" class="padaav-total">0</div>
+    <div id="padaavMessage" class="padaav-message">राम नाम से आगे बढ़ते रहें 🙏</div>
+    <div class="padaav-next" id="padaavNext"></div>
+  </div>
+
+  <div id="padaavList" class="padaav-list"></div>
+
+  <div class="padaav-blessing card" id="padaavBlessing">
+    <div class="small">🌸 आज का स्मरण</div>
+    <div>गिनती मंज़िल नहीं — हर राम नाम स्वयं साधना है।</div>
+  </div>
+</section>
+<div class="card safe-data-panel" id="safeDataPanel">
   <h3>साधना डेटा सुरक्षा</h3>
   <p class="small">अपने जाप का बैकअप रखें और भविष्य के अपडेट से पहले डेटा सुरक्षित रखें।</p>
   <div class="safe-data-actions">
@@ -247,13 +278,87 @@ $('goal').value=state.goal;$('mantra').value=state.mantra;render();
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();
 </script>
+
 <script>
 (function(){
-function n(v){if(typeof v==="number")return Math.max(0,v);if(v&&typeof v==="object"){for(const k of["count","jaap","jap","value","total"])if(typeof v[k]==="number")return Math.max(0,v[k]);}return 0}
-function total(){const keys=["ramNaamJaap","ramNaamData","ramData","jaapData","naamJaapData","ram_naam_jaap"];for(const k of keys){try{const d=JSON.parse(localStorage.getItem(k)||"null");if(d){if(typeof d.total==="number")return Math.max(0,d.total);if(typeof d.count==="number")return Math.max(0,d.count);if(d.days)return Object.values(d.days).reduce((s,v)=>s+n(v),0)}}catch(e){}}return 0}
-function renderPadaav(){const el=document.getElementById("padaavList");if(!el)return;const t=total(),marks=[108,1008,5008,11000,21000,51000,100000,500000,1000000],next=marks.find(m=>t<m);el.innerHTML='<div class="padaav-grid">'+marks.map(m=>{const p=Math.min(100,t/m*100),done=t>=m,current=!done&&m===next;return `<div class="padaav-item"><div class="padaav-title">${m.toLocaleString("en-IN")} जाप ${done?"✓":""}</div><div class="padaav-sub">${done?"पड़ाव पूर्ण":current?`${(m-t).toLocaleString("en-IN")} जाप बाकी`:`${Math.floor(p)}%`}</div><div class="padaav-bar"><div class="padaav-fill" style="width:${p}%"></div></div></div>`}).join("")+'</div>'}
-function init(){renderPadaav();window.addEventListener("storage",renderPadaav);document.addEventListener("visibilitychange",()=>{if(!document.hidden)renderPadaav()});setInterval(renderPadaav,1500)}
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+  const marks=[
+    [108,"पहली माला","108 बार राम नाम — साधना का सुंदर आरम्भ।","🌸 पहला पड़ाव"],
+    [1008,"नाम में स्थिरता","नाम-स्मरण की लय को बनाए रखें।","🙏 साधना आगे बढ़ी"],
+    [5008,"गहरा अभ्यास","नियमित जाप के लिए स्वयं को समय दें।","🪷 मन को ठहराव"],
+    [11000,"अभ्यास की गहराई","हर जाप को श्रद्धा से करें, केवल संख्या के लिए नहीं।","🕉️ गहरा पड़ाव"],
+    [21000,"निरंतरता","रोज़ थोड़ा-थोड़ा नाम भी बहुत मूल्यवान है।","🌿 निरंतर साधना"],
+    [51000,"दीर्घ साधना","राम नाम के साथ समय बिताने का सुंदर अवसर।","✨ विशेष पड़ाव"],
+    [100000,"नाम-स्मरण उत्सव","यह संख्या नहीं, लंबे अभ्यास की याद है।","🌺 साधना उत्सव"],
+    [500000,"महासाधना पड़ाव","अपनी साधना की यात्रा को प्रेम से जारी रखें।","🪔 दीपित साधना"],
+    [1000000,"राम नाम महापड़ाव","हर उच्च पड़ाव के बाद भी अगला राम नाम ही महत्वपूर्ण है।","🚩 राम नाम की यात्रा"]
+  ];
+
+  function readNum(v){
+    if(typeof v==="number") return Math.max(0,v);
+    if(v&&typeof v==="object"){
+      for(const k of ["count","jaap","jap","value","total"])
+        if(typeof v[k]==="number") return Math.max(0,v[k]);
+    }
+    return 0;
+  }
+  function getTotal(){
+    const keys=["ramNaamJaap","ramNaamData","ramData","jaapData","naamJaapData","ram_naam_jaap"];
+    for(const key of keys){
+      try{
+        const d=JSON.parse(localStorage.getItem(key)||"null");
+        if(!d) continue;
+        if(typeof d.total==="number") return Math.max(0,d.total);
+        if(typeof d.count==="number") return Math.max(0,d.count);
+        if(d.days&&typeof d.days==="object")
+          return Object.values(d.days).reduce((s,v)=>s+readNum(v),0);
+      }catch(e){}
+    }
+    return 0;
+  }
+
+  function renderPadaav(){
+    const list=document.getElementById("padaavList");
+    if(!list)return;
+    const total=getTotal();
+    const totalEl=document.getElementById("padaavTotal");
+    const msg=document.getElementById("padaavMessage");
+    const nextEl=document.getElementById("padaavNext");
+    if(totalEl)totalEl.textContent=total.toLocaleString("en-IN");
+
+    let next=null;
+    for(const x of marks){if(total<x[0]){next=x;break;}}
+    if(nextEl){
+      nextEl.textContent=next
+        ? "अगला पड़ाव: "+next[0].toLocaleString("en-IN")+" जाप • "+(next[0]-total).toLocaleString("en-IN")+" जाप बाकी"
+        : "सभी पड़ाव पूरे 🙏 • अब भी हर राम नाम अपनी जगह पूर्ण है।";
+    }
+    if(msg){
+      if(total===0) msg.textContent="पहला राम नाम ही पहला पड़ाव है। 🙏";
+      else if(next) msg.textContent="बहुत सुंदर। हर राम नाम आपको अगले पड़ाव के करीब ले जा रहा है।";
+      else msg.textContent="राम नाम की यात्रा चलती रहे। 🙏";
+    }
+
+    list.innerHTML=marks.map(([m,title,desc,reward])=>{
+      const done=total>=m;
+      const current=!done && next && next[0]===m;
+      const pct=Math.min(100,total/m*100);
+      return `<div class="padaav-item ${done?'done':''} ${current?'current':''}">
+        <div class="padaav-mark">${m.toLocaleString("en-IN")} जाप ${done?'✓':''}</div>
+        <div class="padaav-status">${done?'पड़ाव पूर्ण':current?(m-total).toLocaleString("en-IN")+" जाप बाकी":Math.floor(pct)+"% प्रगति"}</div>
+        <div class="padaav-reward">${reward}<br>${desc}</div>
+        <div class="padaav-bar"><div class="padaav-fill" style="width:${pct}%"></div></div>
+      </div>`;
+    }).join("");
+  }
+
+  function init(){
+    renderPadaav();
+    window.addEventListener("storage",renderPadaav);
+    document.addEventListener("visibilitychange",()=>{if(!document.hidden)renderPadaav()});
+    setInterval(renderPadaav,1500);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();
-</script></body>
+</script>
+</body>
 </html>
