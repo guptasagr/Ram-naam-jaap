@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>राम नाम जाप</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden}
+body{
+  background:#fffaf0;
+  color:#5b3a20;
+  font-family:system-ui,-apple-system,"Noto Sans Devanagari",sans-serif;
+}
+.app{
+  height:100vh;height:100dvh;
+  display:flex;flex-direction:column;align-items:center;
+}
+header{text-align:center;padding:24px 16px 8px}
+h1{margin:0;font-size:23px;font-weight:700}
+.subtitle{margin-top:5px;font-size:13px;opacity:.6}
+main{
+  width:min(100%,520px);
+  flex:1;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:16px 20px 28px;
+}
+.count{
+  font-size:64px;line-height:1;
+  font-weight:750;
+  font-variant-numeric:tabular-nums;
+  margin-bottom:22px;
+}
+.jap{
+  width:min(76vw,300px);
+  aspect-ratio:1;
+  border:0;border-radius:50%;
+  background:#f2e6d3;color:#5b3a20;
+  font-size:42px;font-weight:700;
+  box-shadow:0 8px 24px rgba(91,58,32,.10);
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+.jap:active{transform:scale(.97)}
+.hint{font-size:12px;opacity:.5;margin-top:18px}
+.today{font-size:13px;opacity:.65;margin-top:18px}
+
+footer{padding:10px 16px 18px;font-size:11px;opacity:.45}
+</style>
+
+<style>
+.mala-wrap{
+  position:relative;
+  width:min(88vw,380px);
+  aspect-ratio:1;
+  margin-bottom:28px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.mala{
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+}
+.bead{
+  position:absolute;
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#dfc8a9;
+  border:1px solid rgba(91,58,32,.18);
+  transform:translate(-50%,-50%);
+  transition:background .12s,transform .12s;
+}
+.bead.done{background:#b86b21;box-shadow:0 1px 4px rgba(91,58,32,.18)}
+.jap{position:relative;z-index:2;width:min(62vw,250px)}
+.mala-count{
+  position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);
+  z-index:3;font-size:11px;opacity:.6;background:#fffaf0;padding:4px 10px;border-radius:10px;white-space:nowrap;
+}
+</style>
+
+
+
+<style>
+.metrics{display:flex;gap:8px;margin-top:18px;width:min(92vw,390px)}
+.metric{flex:1;min-width:0;text-align:center;padding:10px 8px;border:1px solid rgba(91,58,32,.12);border-radius:12px;background:rgba(255,255,255,.28)}
+.metric-label{display:block;font-size:11px;opacity:.6;margin-bottom:4px}
+.metric strong{font-size:20px;font-variant-numeric:tabular-nums}
+</style>
+<style>
+@keyframes ramPulse{0%{transform:scale(1)}45%{transform:scale(1.045)}100%{transform:scale(1)}}
+@keyframes beadGlow{0%{transform:translate(-50%,-50%) scale(1)}45%{transform:translate(-50%,-50%) scale(1.55);box-shadow:0 0 12px rgba(184,107,33,.45)}100%{transform:translate(-50%,-50%) scale(1);box-shadow:none}}
+@keyframes countRise{0%{transform:translateY(0)}45%{transform:translateY(-5px)}100%{transform:translateY(0)}}
+.jap.ram-click{animation:ramPulse .22s ease-out}.count.count-click{animation:countRise .24s ease-out}.bead.bead-click{animation:beadGlow .28s ease-out}
+@media(prefers-reduced-motion:reduce){.jap.ram-click,.count.count-click,.bead.bead-click{animation:none}}
+</style><style>
+/* Bhagwa theme */
+body{background:linear-gradient(180deg,#fff8ee 0%,#fff1dc 100%);color:#6b3518}
+.jap{background:linear-gradient(145deg,#f6c27f,#e87524);color:#fffaf0;box-shadow:0 10px 28px rgba(169,67,13,.20),inset 0 1px 0 rgba(255,255,255,.28)}
+.count{color:#8d3d12}
+.subtitle{color:#a9430d}
+.hint,.today,footer{color:#8d4a25}
+.metric{background:rgba(255,247,235,.62);border-color:rgba(169,67,13,.18)}
+.action{color:#8d3d12;border-color:rgba(169,67,13,.22)}
+.bead{background:#efd3ae;border-color:rgba(169,67,13,.22)}
+.bead.done{background:#d85d18;box-shadow:0 1px 5px rgba(169,67,13,.24)}
+.mala-count{background:#fff8ee;color:#8d3d12}
+</style></head>
+
+<body>
+<div class="app">
+  <header>
+    <h1>राम नाम जाप</h1>
+    <div class="subtitle">श्री राम</div>
+  </header>
+
+  <main>
+    <div id="count" class="count">0</div>
+
+    <div class="mala-wrap">
+      <div id="mala" class="mala" aria-label="108 मनकों की माला"></div>
+      <button id="jap" class="jap" aria-label="राम नाम जाप करें">राम</button>
+      <div id="malaCount" class="mala-count">माला: 0 / 108</div>
+    </div>
+
+    <div class="hint">हर स्पर्श पर एक मनका</div>
+    <div class="metrics"><div class="metric"><span class="metric-label">आज का जाप</span><strong id="todayCount">0</strong></div><div class="metric"><span class="metric-label">कुल जाप</span><strong id="totalCount">0</strong></div><div class="metric"><span class="metric-label">कुल माला</span><strong id="malaDone">0</strong></div></div>
+</main>
+
+  <footer>जाप इसी ब्राउज़र में सुरक्षित रहता है।</footer>
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY = "ram_naam_jaap_simple_v1";
+  const MALA = 108;
+
+  function todayKey(){
+    const d = new Date();
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  }
+
+  function load(){
+    try{
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if(saved && saved.days && typeof saved.days === "object") return saved;
+    }catch(e){}
+    return {days:{}};
+  }
+
+  let data = load();
+
+  function todayCount(){
+    return Math.max(0, Number(data.days[todayKey()] || 0));
+  }
+
+  function totalCount(){
+    return Object.values(data.days).reduce((sum,v)=>sum+Math.max(0,Number(v)||0),0);
+  }
+
+  function save(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  function render(){
+    const today = todayCount();
+    const total = totalCount();
+    const currentMala = total % MALA;
+
+    const countEl=document.getElementById("count");
+    const todayEl=document.getElementById("todayCount");
+    const totalEl=document.getElementById("totalCount");
+    const malaDoneEl=document.getElementById("malaDone");
+    const malaCountEl=document.getElementById("malaCount");
+
+    if(countEl) countEl.textContent=today.toLocaleString("en-IN");
+    if(todayEl) todayEl.textContent=today.toLocaleString("en-IN");
+    if(totalEl) totalEl.textContent=total.toLocaleString("en-IN");
+    if(malaDoneEl) malaDoneEl.textContent=Math.floor(total/MALA).toLocaleString("en-IN");
+    if(malaCountEl) malaCountEl.textContent="माला: "+currentMala+" / "+MALA;
+
+    const beads=document.querySelectorAll(".bead");
+    beads.forEach((b,i)=>b.classList.toggle("done", i<currentMala));
+  }
+
+  function addJaap(){
+    data.days[todayKey()] = todayCount()+1;
+    save();
+    render();
+    const button=document.getElementById("jap"), countEl=document.getElementById("count");
+    if(button){button.classList.remove("ram-click");void button.offsetWidth;button.classList.add("ram-click")}
+    if(countEl){countEl.classList.remove("count-click");void countEl.offsetWidth;countEl.classList.add("count-click")}
+    const beads=document.querySelectorAll(".bead"), total=totalCount();
+    const bead=beads[total%MALA===0?MALA-1:(total%MALA)-1];
+    if(bead){bead.classList.remove("bead-click");void bead.offsetWidth;bead.classList.add("bead-click")}
+  }
+
+  // Build the 108 beads.
+  const mala=document.getElementById("mala");
+  if(mala && !mala.children.length){
+    for(let i=0;i<MALA;i++){
+      const bead=document.createElement("span");
+      bead.className="bead";
+      const angle=(i/MALA)*Math.PI*2-Math.PI/2;
+      bead.style.left=(50+46*Math.cos(angle))+"%";
+      bead.style.top=(50+46*Math.sin(angle))+"%";
+      mala.appendChild(bead);
+    }
+  }
+
+  const button=document.getElementById("jap");
+  if(button) button.addEventListener("click",addJaap);
+
+  render();
+})();
+</script>
+
+<script>
+(function(){
+  const MALA=108;
+  const mala=document.getElementById("mala");
+  const malaCount=document.getElementById("malaCount");
+  if(!mala) return;
+
+  const beads=[];
+  const radius=46;
+
+  for(let i=0;i<MALA;i++){
+    const b=document.createElement("span");
+    b.className="bead";
+    const angle=(i/MALA)*Math.PI*2-Math.PI/2;
+    b.style.left=(50+radius*Math.cos(angle))+"%";
+    b.style.top=(50+radius*Math.sin(angle))+"%";
+    mala.appendChild(b);
+    beads.push(b);
+  }
+
+  function renderMala(){
+    const total=Math.max(0,Number(document.getElementById("count").textContent.replace(/,/g,""))||0);
+    const current=total%MALA;
+    beads.forEach((b,i)=>b.classList.toggle("done",i<current || (current===0 && total>0 && i<MALA)));
+    malaCount.textContent="माला: "+current+" / "+MALA;
+  }
+
+  document.getElementById("jap").addEventListener("click",function(){
+    requestAnimationFrame(renderMala);
+  });
+});
+});
+
+  renderMala();
+})();
+</script>
+
+
+</body>
+</html>
